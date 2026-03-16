@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Document</title>
+         <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    </head>
+    <body>
+        <section class="main">
+            <section class="inputs">
+                {% for input in inputs.values() %}
+                <div class="card">
+                  <span class="heading">{{ input.quantity }}</span>
+                  <span class="value"> <span style="display:inline;" id="{{input.quantity}}-val">Loading:</span> {{ input.unit }}</span>
+                </div>
+              {% endfor %}
+            </section>
+            <section class="outputs">
+                {% for output in outputs.values() %}
+                    <div class="card">
+                        <span class="heading">{{ output.name }}</span>
+                        <span class="value">{{ output.state }}</span>
+                    </div>
+                {% endfor %}
+                <img class="pi-bros-wallpaper" src="{{ url_for('static', filename='images/pibros-logo.jpeg') }}" alt="pibros logo">
+            </section>
+        </section>
+    </body>
+    <script>
+        let sensors = ["temperature", "humidity", "air_quality", "moisture", "internal_temp"]
+        function refresh(){
+          fetch('/get_update')
+            .then(response => response.json())
+            .then(i => {
+                sensors.forEach((j)=>{
+                  document.getElementById(j+"-val").innerText = i[j].value;
+                  // console.log("worked");
+                })
+            })
+            .catch(()=>console.log("failed"))
+        }
+
+        setInterval(refresh, 1000);
+    </script>
+</html>
