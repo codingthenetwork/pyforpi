@@ -9,7 +9,7 @@
     <body>
         <section class="main">
             <section class="inputs">
-                {% for input in inputs.values() %}
+                {% for input in components.inputs.values() %}
                 <div class="card">
                   <span class="heading">{{ input.quantity }}</span>
                   <span class="value"> <span style="display:inline;" id="{{input.quantity}}-val">Loading:</span> {{ input.unit }}</span>
@@ -17,7 +17,7 @@
               {% endfor %}
             </section>
             <section class="outputs">
-                {% for output in outputs.values() %}
+                {% for output in components.outputs.values() %}
                     <div class="card">
                         <span class="heading">{{ output.name }}</span>
                         <span class="value">{{ output.state }}</span>
@@ -34,7 +34,7 @@
             .then(response => response.json())
             .then(i => {
                 sensors.forEach((j)=>{
-                  document.getElementById(j+"-val").innerText = i[j].value;
+                  document.getElementById(j+"-val").innerText = i["inputs"][j].value;
                   // console.log("worked");
                 })
             })

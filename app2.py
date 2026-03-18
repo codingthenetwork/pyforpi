@@ -10,21 +10,12 @@ import busio
 import adafruit_dht
 import adafruit_ads1x15.ads1115 as ADS
 from adafruit_ads1x15.analog_in import AnalogIn
+from gpiozero import OutputDevice
 
+# configuring ADC
 i2c = busio.I2C(board.SCL, board.SDA)
 ads = ADS.ADS1115(i2c)
 ads.gain = 1
-
-def moist_lvl(raw):
-    dry_limit = 26500
-    wet_limit = 8500
-
-    percentage = 100 * ( (raw - dry_limit) / ( wet_limit - dry_limit) )
-    percentage = max(0, min(100, percentage) )
-    percentage = round(percentage, 1)
-
-    moisture_output = percentage
-    return moisture_output
 
 def normalise(raw, low, high):
     percentage = 100 * ( (raw - low) / ( high - low) )
@@ -34,136 +25,125 @@ def normalise(raw, low, high):
     moisture_output = percentage
     return moisture_output
 
-def air_quality(raw):
-    clean_limit = 5000
-    danger_limit = 25000
+states = [False, True]
 
-    percentage = 100 * ( (raw - clean_limit) / ( danger_limit - clean_limit) )
-    percentage = max(0, min(100, percentage) )
-    percentage = round(percentage, 1)
-
-    aq_output = 100 - percentage
-    return aq_output
-
-    # if percentage > 90:
-    #   aq_output = "Immediate Danger"
-    # elif percentage > 60:
-    #   aq_output = "Low Danger"
-    # elif percentage > 40:
-    #   aq_output = "Satisfactory"
-    # else:
-    #   aq_output = "All good"
-
-inputs = {
-    "temperature": {
-        "sensor": "None",
-        "name": "DHT22",
-        "quantity": "temperature",
-        "value": "Loading",
-        "unit": "ºC"
+components = {
+    "inputs": {
+        "temperature": {
+            "name": "DHT22",
+            "quantity": "temperature",
+            "value": "Loading",
+            "unit": "ºC"
+        },
+        "humidity": {
+            "name": "DHT22",
+            "quantity": "humidity",
+            "value": "Loading",
+            "unit": "%"
+        },
+        "moisture": {
+            "name": "YL69 | HC38",
+            "quantity": "moisture",
+            "value": "Loading",
+            "unit": "%"
+        },
+        "air_quality": {
+            "quantity": "air_quality",
+            "value": "Loading",
+            "unit": "%"
+        },
+        "internal_temp": {
+            "quantity": "internal_temp",
+            "value": "Loading",
+            "unit": "ºC"
+        },
     },
-    "humidity": {
-        "sensor": "None",
-        "name": "DHT22",
-        "quantity": "humidity",
-        "value": "Loading",
-        "unit": "%"
-    },
-    "moisture": {
-        "sensor": "None",
-        "name": "YL69 | HC38",
-        "quantity": "moisture",
-        "value": "Loading",
-        "unit": "%"
-    },
-    "air_quality": {
-        "sensor": "None",
-        "quantity": "air_quality",
-        "value": "Loading",
-        "unit": "%"
-    },
-    "internal_temp": {
-        "sensor": "None",
-        "quantity": "internal_temp",
-        "value": "Loading",
-        "unit": "ºC"
-    },
+    "outputs": {
+      "pump": {
+        "name": "pump",
+        "state": states[0]
+      },
+      "UVlight": {
+        "name": "uv_light",
+        "state": states[0]
+      },
+      "fan": {
+        "name": "fan",
+        "state": states[0]
+      }
+    }
 }
 
-options = ["on", "off"]
-
-outputs = {
-  "waterpump": {
-    "name": "water_pump",
-    "state": options[0]
-  },
-  "UVlight": {
-    "name": "uv_light",
-    "state": options[0]
-  },
-  "fan": {
-    "name": "fan",
-    "state": options[0]
-  }
-}
+states = [False, True]
 
 app = Flask(__name__)
 
+# @app.route('/emergency')
+def emergency(preset, value):
+
+    preset = int(preset.replace("%",""))
+    value = int(value.replace("%",""))
+
+
+    if value < preset and outputs.pump.state == states[0]:
+        pump.on()
+        components.outputs.pump.state = states[1]
+        sleep(4)
+        pump.off()
+        components.outputs.pump.state = states[0]
+    else:
+        msg = "Value did not exceed preset or pump was already on"
+        # print(msg)
+        pass
+
 @app.route('/')
 def home():
-    return render_template("index.html", inputs=inputs, outputs=outputs)
+    return render_template("index.html", components=components)
     # return render_template("index.html")
 
 @app.route('/get_update')
 def get_update():
 
-    global inputs
+    global components
 
     # temperature
     try:
-        # inputs["temperature"]["sensor"] = adafruit_dht.DHT22(board.D4, use_pulseio=False)
-        inputs["temperature"]["value"] = adafruit_dht.DHT22(board.D24, use_pulseio=False).temperature
+        components["inputs"]["temperature"]["value"] = adafruit_dht.DHT22(board.D24, use_pulseio=False).temperature
     except RuntimeError as e:
-        # inputs["temperature"]["value"] = f"Error {e}"
-        pass
+        print(e)
 
     #humidity
     try:
-        # inputs["humidity"]["sensor"] = adafruit_dht.DHT22(board.D4, use_pulseio=False)
-        inputs["humidity"]["value"] = adafruit_dht.DHT22(board.D24, use_pulseio=False).humidity
+        components["inputs"]["humidity"]["value"] = adafruit_dht.DHT22(board.D24, use_pulseio=False).humidity
     except RuntimeError as e:
-        # inputs["humidity"]["value"] = f"Error {e}"
-        pass
+        print(e)
 
     #moisture
-    try:
-        yl69 = AnalogIn(ads, 0)
+    yl69 = AnalogIn(ads, 0)
 
-        inputs["moisture"]["value"] = normalise(yl69.value, 26500, 8500)
+    try:
+        components["inputs"]["moisture"]["value"] = normalise(yl69.value, 26500, 8500)
     except RuntimeError as e:
-        inputs["moisture"]["value"] = f"Error {e}"
-        pass
+        print(e)
+    # check moisture
+    # emergency("40%", inputs["moisture"]["value"])
 
     #air_quality
+    mq135 = AnalogIn(ads, 1)
     try:
-        mq135 = AnalogIn(ads, 1)
-
-        inputs["air_quality"]["value"] = normalise(mq135.value, 5000, 25000)
+        components["inputs"]["air_quality"]["value"] = normalise(mq135.value, 25000, 5000)
     except RuntimeError as e:
-        inputs["air_quality"]["value"] = f"Error {e}"
-        pass
+        print(e)
 
     #internal_temp
+    output = subprocess.run(["vcgencmd", "measure_temp"], capture_output=True, text=True, check=True).stdout.strip().replace("temp=","").replace("'C","")
     try:
-        result = subprocess.run(["vcgencmd", "measure_temp"], capture_output=True, text=True, check=True).stdout.strip()
-        output = result.replace("temp=","").replace("'C","")
-
-        inputs["internal_temp"]["value"] = output
+        components["inputs"]["internal_temp"]["value"] = output
     except RuntimeError as e:
-        inputs["internal_temp"]["value"] = f"Error {e}"
-        pass
+        print(e)
 
-    return jsonify(inputs)
+    # parse all inputs
+    return jsonify(components)
 
 
 app.run()
