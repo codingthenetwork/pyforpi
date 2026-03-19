@@ -1,13 +1,13 @@
 # PyForPi
 ## Logic
 1. `app.py`
-  2. starts a local web server
-  3. reads values from sensors
-  4. assigns all the values to a python dictionary
-  5. converts the dictionary to a `.json` file and sends it to browser
-6. browser (`templates/index.html`)
-  7. uses `fetch()` to receive the `.json` file
-  8. uses `forEach()` to assign values from the `.json` file to `<span>` tags in the html
+   1. starts a local web server
+   2. reads values from sensors
+   3. assigns all the values to a python dictionary
+   4. converts the dictionary to a `.json` file and sends it to browser
+2. browser (`templates/index.html`)
+   1. uses `fetch()` to receive the `.json` file
+   2. uses `forEach()` to assign values from the `.json` file to `<span>` tags in the html
 
 ## Sensors
 
