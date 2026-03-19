@@ -1,5 +1,7 @@
 # for dashboard
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template 
+
+# for utilities
 import random
 import subprocess
 import threading
@@ -13,16 +15,16 @@ import adafruit_ads1x15.ads1115 as ADS
 from adafruit_ads1x15.analog_in import AnalogIn
 from gpiozero import OutputDevice
 
-# configuring ADC
+# set up ADC
 i2c = busio.I2C(board.SCL, board.SDA)
 ads = ADS.ADS1115(i2c)
 ads.gain = 1
 
-# configuring pump
+# set up pump
 pump = OutputDevice(23, active_high=False, initial_value=False)
+states = [0, 1] # keeping track of on and off states
 
-states = [0, 1]
-
+# python dictionary that stores all relevant sensor data to parse into .json and send to browser
 components = {
     "inputs": {
         "temperature": {
@@ -72,6 +74,7 @@ components = {
     "override":False
 }
 
+# helper function to convert raw values to percentages
 def normalise(raw, low, high):
     percentage = 100 * ( (raw - low) / ( high - low) )
     percentage = max(0, min(100, percentage) )
@@ -83,13 +86,13 @@ def normalise(raw, low, high):
 
 app = Flask(__name__)
 
+# this function fires the pump
 def fire_pump():
-    print("fire_pump called")
-    if components["outputs"]["pump"]["state"] == states[0]:
-        # components["override"] = True
+    print("fire_pump called") 
+    if components["outputs"]["pump"]["state"] == states[0]: 
         pump.on()
         components["outputs"]["pump"]["state"] = states[1]
-        time.sleep(components["pump_time"])
+        time.sleep(components["pump_time"]) # wait for 4s
         pump.off()
         components["outputs"]["pump"]["state"] = states[0]
 
@@ -97,8 +100,7 @@ def fire_pump():
             components["override"] = False
         else:
             pass
-
-        # components["override"] = False
+            
         print("pump fired")
 
     else:
@@ -106,6 +108,7 @@ def fire_pump():
         # print(msg)
         pass
 
+# if humidity less than preset, fire_pump() is called
 def emergency(preset, value):
 
     preset = float(preset.replace("%",""))
@@ -119,55 +122,12 @@ def emergency(preset, value):
         # print("Value did not exceed preset")
         pass
 
+# python returns homepage at the request for '/' URL
 @app.route('/')
 def home():
     return render_template("index.html", components=components)
-    # return render_template("index.html")
 
-# @app.route('/get_update_fake')
-# def get_update_fake():
-
-#     global components
-
-#     # temperature
-#     try:
-#         components["inputs"]["temperature"]["value"] = random.choice([61,67])
-#     except RuntimeError as e:
-#         print(e)
-
-#     #humidity
-#     try:
-#         components["inputs"]["humidity"]["value"] = random.choice([61,67])
-#     except RuntimeError as e:
-#         print(e)
-
-#     #moisture
-#     # yl69 = AnalogIn(ads, 0)
-
-#     try:
-#         components["inputs"]["moisture"]["value"] = random.choice([61,67,64,63,55,57,67])
-#         # emergency("40%", str(components["inputs"]["moisture"]["value"]))
-#         threading.Thread(target=emergency, args=("40", str(components["inputs"]["moisture"]["value"])),daemon=True).start()
-#     except RuntimeError as e:
-#         print(e)
-#     # check moisture
-
-#     #air_quality
-#     # mq135 = AnalogIn(ads, 1)
-#     try:
-#         components["inputs"]["air_quality"]["value"] = random.choice([61,67])
-#     except RuntimeError as e:
-#         print(e)
-
-#     #internal_temp
-#     try:
-#         components["inputs"]["internal_temp"]["value"] = random.choice([61,67])
-#     except RuntimeError as e:
-#         print(e)
-
-#     # parse all inputs
-#     return jsonify(components)
-
+# python executes fire_pump() at the request for '/override_fire_pump' URL
 @app.route('/override_fire_pump')
 def override_fire_pump():
     components["override"]=True
@@ -175,11 +135,12 @@ def override_fire_pump():
     # components["override"]=False
     return '', 204
 
+# python returns emergency page at the request for '/emergency' URL
 @app.route('/emergency')
 def goto_emergency():
     return render_template('emergency.html', components=components)
 
-
+# python reads sensor values (1) updates the python dictionary with the values (2) outputs the dictionary as a .json file (3)
 @app.route('/get_update')
 def get_update():
 
@@ -202,7 +163,7 @@ def get_update():
 
     try:
         components["inputs"]["moisture"]["value"] = normalise(yl69.value, 26500, 8500)
-        threading.Thread(target=emergency, args=("40%", str(components["inputs"]["moisture"]["value"])),daemon=True).start()
+        threading.Thread(target=emergency, args=("40%", str(components["inputs"]["moisture"]["value"])),daemon=True).start() # call emergency() in a new thread
     except RuntimeError as e:
         print(e)
 
@@ -223,5 +184,5 @@ def get_update():
     # parse all inputs
     return jsonify(components)
 
-
+# this function launches the web server at http://127.0.0.1:5000
 app.run()
