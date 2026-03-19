@@ -17,12 +17,18 @@
             {% endfor %}
         </section>
         <section class="outputs">
-            {% for output in components.outputs.values() %}
-                <div class="card">
-                    <span class="heading">{{ output.name }}</span>
-                    <span class="value">{{ output.state }}</span>
-                </div>
-            {% endfor %}
+            <div class="card">
+                <span class="heading">pump</span>
+                <span class="value" id="pump-value">Off</span>
+            </div>
+            <div class="card">
+                <span class="heading">uv_light</span>
+                <span class="value">On</span>
+            </div>
+            <div class="card">
+                <span class="heading">fan</span>
+                <span class="value">On</span>
+            </div>
             <div class="card">
                 <span class="heading">Pump Control</span>
                 <button id="pump-button" class="off-button">Off</button>
@@ -33,12 +39,14 @@
 
         // button logic
         let button = document.querySelector("#pump-button")
+        let pump_value = document.querySelector("#pump-value")
         let button_state = false
         let delay = {{ components.pump_time }} // fetches pump_time from python dictionary 
         button.addEventListener("click", ()=>{
             button.disabled = true
             fetch('/override_fire_pump') // requests app.py for pump activation
             button.innerText = "Watering"
+            pump_value.innerText = "On"
             button.className = "on-button" 
             button_state = true
 
@@ -46,6 +54,7 @@
             setTimeout(()=>{
               button.disabled = false
               button.innerText = "Off"
+              pump_value.innerText = "Off"
               button.className = "off-button"
               button_state = false
             }, delay * 1000)
