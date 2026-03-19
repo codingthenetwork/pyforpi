@@ -108,7 +108,7 @@ def fire_pump():
         # print(msg)
         pass
 
-# if humidity less than preset, fire_pump() is called
+# if moisture less than preset, fire_pump() is called
 def emergency(preset, value):
 
     preset = float(preset.replace("%",""))
