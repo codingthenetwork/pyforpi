@@ -1,0 +1,43 @@
+@import './global.css';
+
+body {
+    display:flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    gap:1rem;
+}
+
+h1 {
+    font-size: 3rem;
+    text-align: center;
+    /*color: var(--accent-color);*/
+}
+/*h2 {
+    font-size: 2rem;
+    margin-block: 2rem 0.5rem;
+}*/
+
+.progress-bar {
+    display:flex;
+    width:80%;
+    height:10em;
+    border: 2px solid var(--accent-color);
+    border-radius:10px;
+    position:relative;
+
+    padding:0.5rem;
+}
+.progress-label {
+    position:absolute;
+    width: 100%;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+
+}
+.progress-bar-width {
+    display:flex;
+    flex-grow: 0;
+    background-color: var(--accent-color);
+}

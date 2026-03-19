@@ -1,0 +1,60 @@
+@import './global.css';
+
+body > section {
+    /*border: 2px solid red;*/
+    /*margin:2rem;*/
+    flex-grow: 1;
+
+    display:flex;
+    flex-direction:column;
+    justify-content: flex-start;
+
+    gap:2vw
+}
+.heading, .value {
+    display:block;
+}
+.heading {
+    font-size:var(--font-factor);
+    color: var(--accent-color)
+}
+.value {
+    font-size:calc( 2 * var(--font-factor) );
+    color: var(--fg-color)
+}
+
+body > section {
+    padding:var(--border-gap);
+    margin:calc( 0.5 * var(--border-gap) );
+}
+.controls {
+    padding:var(--border-gap);
+    /*margin:calc( 0.5 * var(--border-gap) );*/
+    /*margin:calc( 1 * var(--border-gap));*/
+}
+.controls {
+    border:2px solid var(--accent-color);
+    border-radius:5px;
+}
+#pump-button{
+    font-family: inherit;
+    font-size:calc( 2 * var(--font-factor) );
+
+    padding:.5rem 1rem;
+    border:2px solid var(--accent-color);
+    border-radius:5px;
+
+    margin-top:1rem;
+}
+.off-button {
+    color: var(--fg-color);
+    background-color: var(--bg-color);
+    opacity:0.7;
+}
+.on-button {
+    color: var(--bg-color);
+    background-color: var(--fg-color);
+}
+.off-button:hover {
+    opacity:1;
+}

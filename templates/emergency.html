@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Document</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='global.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='emergency.css') }}">
+    </head>
+
+    <body>
+        <h1>Humidity too low! (40%)</h1>
+        <!--<h2>Filling water pump!</h2>-->
+        <div class="progress-bar">
+            <div class="progress-bar-width"></div>
+            <div class="progress-label"><h1>Filling water pump!</h1></div>
+        </div>
+    </body>
+    <script>
+      let delay = {{ components.pump_time }}
+      let progress_bar = document.querySelector(".progress-bar-width")
+      progress_bar.style.flexGrow = "0"
+      progress_bar.style.transition = `flex-grow ${delay}s ease-in-out`;
+
+      setTimeout(()=>progress_bar.style.flexGrow = "1", 500);
+
+      progress_bar.addEventListener('transitionend', () => {
+          window.location.href = '/';
+      });
+    </script>
+</html>

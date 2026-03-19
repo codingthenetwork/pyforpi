@@ -4,43 +4,67 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Document</title>
-         <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='global.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
     </head>
     <body>
-        <section class="main">
-            <section class="inputs">
-                {% for input in components.inputs.values() %}
+        <section class="inputs">
+            {% for input in components.inputs.values() %}
+            <div class="card">
+              <span class="heading">{{ input.quantity }}</span>
+              <span class="value"> <span style="display:inline;" id="{{input.quantity}}-val">Loading:</span> <span class="unit">{{ input.unit }}</span></span>
+            </div>
+            {% endfor %}
+        </section>
+        <section class="outputs">
+            {% for output in components.outputs.values() %}
                 <div class="card">
-                  <span class="heading">{{ input.quantity }}</span>
-                  <span class="value"> <span style="display:inline;" id="{{input.quantity}}-val">Loading:</span> {{ input.unit }}</span>
+                    <span class="heading">{{ output.name }}</span>
+                    <span class="value">{{ output.state }}</span>
                 </div>
-              {% endfor %}
-            </section>
-            <section class="outputs">
-                {% for output in components.outputs.values() %}
-                    <div class="card">
-                        <span class="heading">{{ output.name }}</span>
-                        <span class="value">{{ output.state }}</span>
-                    </div>
-                {% endfor %}
-                <img class="pi-bros-wallpaper" src="{{ url_for('static', filename='images/pibros-logo.jpeg') }}" alt="pibros logo">
-            </section>
+            {% endfor %}
+            <div class="card">
+                <span class="heading">Pump Control</span>
+                <button id="pump-button" class="off-button">Off</button>
+            </div>
         </section>
     </body>
     <script>
+
+        let button = document.querySelector("#pump-button")
+        let button_state = false
+        let delay = {{ components.pump_time }}
+        button.addEventListener("click", ()=>{
+            button.disabled = true
+            fetch('/override_fire_pump')
+            button.innerText = "Watering"
+            button.className = "on-button"
+            button_state = true
+
+            setTimeout(()=>{
+              button.disabled = false
+              button.innerText = "Off"
+              button.className = "off-button"
+              button_state = false
+            },delay * 1000)
+        })
+
         let sensors = ["temperature", "humidity", "air_quality", "moisture", "internal_temp"]
         function refresh(){
-          fetch('/get_update')
-            .then(response => response.json())
-            .then(i => {
-                sensors.forEach((j)=>{
-                  document.getElementById(j+"-val").innerText = i["inputs"][j].value;
-                  // console.log("worked");
-                })
-            })
-            .catch(()=>console.log("failed"))
+            fetch('/get_update')
+              .then(response => response.json())
+              .then(i => {
+                  if(i["outputs"]["pump"]["state"] === 1 && !i["override"]){
+                    window.location.href = "/emergency";
+                  }
+                  sensors.forEach((j)=>{
+                    document.getElementById(j+"-val").innerText = i["inputs"][j].value;
+                  })
+              })
+              .catch(()=>console.log("failed"))
         }
 
-        setInterval(refresh, 1000);
+        setInterval(refresh, 500);
+
     </script>
 </html>

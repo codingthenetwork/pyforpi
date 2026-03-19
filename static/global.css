@@ -1,0 +1,47 @@
+/*Courier Prime*/
+@import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&family=Outfit:wght@100..900&display=swap');
+/*Goldman (techno, cyberpunk)*/
+@import url('https://fonts.googleapis.com/css2?family=Goldman:wght@400;700&display=swap');
+/*@font-face {
+font-family: 'Outfit';
+src: local('Outfit'), url(./fonts/Outfit/Outfit-VariableFont_wght.ttf) format('ttf');
+/*font-weight: 100;
+font-style: 100;*/
+
+:root {
+    font-family: "Goldman", sans-serif;
+    /*text-transform: uppercase;*/
+    --font-factor: 1rem;
+    --bg-color: #071031;
+    --fg-color: #76EBF2;
+    --accent-color: #E43CA9;
+    --border-gap:1rem;
+    --warning-color:#e36f6f;
+
+}
+* {
+    box-sizing: border-box;
+    margin:0;
+    padding:0;
+    color:var(--fg-color);
+    color:inherit;
+}
+
+.debug {
+    border:2px solid red;
+}
+.debuga, .debuga * {
+    border:2px solid red;
+}
+body {
+    display: flex;
+    /*padding:calc( 2 * var(--border-gap) );*/
+    padding: var(--border-gap);
+
+    /*width: max(100dvw,100%,100vw);
+    height: max(100dvh,100%,100vh);*/
+    width: 100dvw;
+    height: 100dvh;
+    background-color: var(--bg-color);
+    color:var(--fg-color);
+}
