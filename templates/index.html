@@ -31,40 +31,45 @@
     </body>
     <script>
 
+        // button logic
         let button = document.querySelector("#pump-button")
         let button_state = false
-        let delay = {{ components.pump_time }}
+        let delay = {{ components.pump_time }} // fetches pump_time from python dictionary 
         button.addEventListener("click", ()=>{
             button.disabled = true
-            fetch('/override_fire_pump')
+            fetch('/override_fire_pump') // requests app.py for pump activation
             button.innerText = "Watering"
-            button.className = "on-button"
+            button.className = "on-button" 
             button_state = true
 
+            // wait for 4s and reset button
             setTimeout(()=>{
               button.disabled = false
               button.innerText = "Off"
               button.className = "off-button"
               button_state = false
-            },delay * 1000)
+            }, delay * 1000)
         })
 
+        // fetches values from python dictionary and updates values on browser
         let sensors = ["temperature", "humidity", "air_quality", "moisture", "internal_temp"]
         function refresh(){
             fetch('/get_update')
               .then(response => response.json())
               .then(i => {
+                  // go to emergency page if humidity < preset
                   if(i["outputs"]["pump"]["state"] === 1 && !i["override"]){
                     window.location.href = "/emergency";
                   }
+                  // update values on browser
                   sensors.forEach((j)=>{
                     document.getElementById(j+"-val").innerText = i["inputs"][j].value;
                   })
               })
-              .catch(()=>console.log("failed"))
+              .catch(()=>console.log("failed")) // output error message on fail
         }
 
-        setInterval(refresh, 500);
+        setInterval(refresh, 500); // request an update every half second
 
     </script>
 </html>
